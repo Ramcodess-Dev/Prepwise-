@@ -30,13 +30,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/dashboard", label: "Dashboard" },
     { href: "/questions", label: "Questions" },
     { href: "/practice", label: "Practice" },
+    { href: "/test", label: "Mock Test" },
     { href: "/progress", label: "Progress" },
   ];
 
   return (
     <div className="min-h-screen">
       <header className="border-b border-stone-200">
-        <div className="max-w-3xl mx-auto px-4 h-12 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between">
           <span className="text-sm font-medium">Prepwise</span>
           <div className="flex items-center gap-4">
             <span className="text-sm text-stone-400">{user?.name}</span>
@@ -46,7 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       <nav className="border-b border-stone-200">
-        <div className="max-w-3xl mx-auto px-4 flex gap-6">
+        <div className="max-w-5xl mx-auto px-4 flex gap-6">
           {nav.map((item) => {
             const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
@@ -58,7 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">{children}</main>
+      <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
     </div>
   );
 }

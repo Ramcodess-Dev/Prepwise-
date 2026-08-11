@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  sessions  PracticeSession[]
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  category    String
+  title       String
+  description String
+  answer      String   @default("")
+  difficulty  String   @default("medium")
+  sessions    PracticeSession[]
+}
+
+model PracticeSession {
+  id          String    @id @default(cuid())
+  userId      String
+  questionId  String
+  status      String    @default("in_progress")
+  score       Int?
+  notes       String?
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  user        User      @relation(fields: [userId], references: [id])
+  question    Question  @relation(fields: [questionId], references: [id])
+}

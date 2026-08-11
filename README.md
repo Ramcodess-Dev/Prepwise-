@@ -6,7 +6,9 @@ Interview preparation, simplified. A minimalistic SaaS app to help you prepare f
 
 - **Auth** — signup / login with hashed passwords and JWT httpOnly cookies
 - **Question bank** — browse by category (behavioral, technical, system-design), filtered by difficulty
-- **Practice mode** — timed sessions with notes, self-scoring, and sample answers
+- **Practice mode** — timed sessions with structured design canvas (system design), self-scoring, and sample answers
+- **Mock Test** — multi-question timed tests with review at the end
+- **Design Tutor** — AI chatbot that explains system design questions step-by-step (built-in tutor; optional OpenAI)
 - **Dashboard** — total sessions, completed sessions, average score
 - **Progress** — session history with scores
 
@@ -40,6 +42,7 @@ Copy the values from `.env` (already present locally):
 ```
 DATABASE_URL="file:./prisma/dev.db"
 JWT_SECRET="your-secret-here"
+OPENAI_API_KEY=""   # optional — enables AI-powered design tutor responses
 ```
 
 ## Scripts

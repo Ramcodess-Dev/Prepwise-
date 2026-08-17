@@ -74,8 +74,27 @@ export default function PracticeSession() {
   async function finishSession() {
     setRunning(false);
     setCompleted(true);
+
+    let whiteboardText = "";
+    if (isSystemDesign) {
+      try {
+        const saved = localStorage.getItem(`whiteboard_${questionId}`);
+        if (saved) {
+          const { nodes, edges } = JSON.parse(saved);
+          if (nodes && nodes.length > 0) {
+            const { serializeWhiteboardToText } = require("@/components/ArchitectureWhiteboard");
+            whiteboardText = serializeWhiteboardToText(nodes, edges);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load whiteboard for saving", err);
+      }
+    }
+
     const allNotes = isSystemDesign
-      ? serializeDesignNotes(designNotes) + (notes ? `\n\n## Additional Notes\n${notes}` : "")
+      ? serializeDesignNotes(designNotes) +
+      (whiteboardText ? `\n\n## Whiteboard Architecture Sketch\n${whiteboardText}` : "") +
+      (notes ? `\n\n## Additional Notes\n${notes}` : "")
       : notes;
 
     if (sessionId) {

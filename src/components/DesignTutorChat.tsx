@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import ArchitectureDiagramView from "@/components/ArchitectureDiagram";
+import ArchitectureWhiteboard from "@/components/ArchitectureWhiteboard";
 import {
   getDiagram,
   getDiagramsForQuestion,
@@ -57,6 +58,7 @@ export default function DesignTutorChat({
   const [loading, setLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [tab, setTab] = useState<"chat" | "diagram">("chat");
+  const [workspaceMode, setWorkspaceMode] = useState<"whiteboard" | "reference">("whiteboard");
   const [activeDiagramId, setActiveDiagramId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<ArchNode | null>(null);
   const [currentStep, setCurrentStep] = useState<DesignStep>("requirements");
@@ -87,10 +89,24 @@ export default function DesignTutorChat({
     setLoading(true);
 
     try {
+      let whiteboardSummary = "";
+      try {
+        const saved = localStorage.getItem(`whiteboard_${questionId}`);
+        if (saved) {
+          const { nodes, edges } = JSON.parse(saved);
+          if (nodes && nodes.length > 0) {
+            const { serializeWhiteboardToText } = require("./ArchitectureWhiteboard");
+            whiteboardSummary = serializeWhiteboardToText(nodes, edges);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load whiteboard summary", err);
+      }
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId, messages: newMessages }),
+        body: JSON.stringify({ questionId, messages: newMessages, whiteboardSummary }),
       });
       const data = await res.json();
 
@@ -153,78 +169,109 @@ export default function DesignTutorChat({
       <div className="flex border-b border-stone-200">
         <button
           onClick={() => setTab("chat")}
-          className={`flex-1 py-2 text-xs font-medium border-b-2 transition-colors ${
-            tab === "chat" ? "border-stone-900 text-stone-900" : "border-transparent text-stone-400"
-          }`}
+          className={`flex-1 py-2 text-xs font-medium border-b-2 transition-colors ${tab === "chat" ? "border-stone-900 text-stone-900" : "border-transparent text-stone-400"
+            }`}
         >
           💬 Step-by-step Guide
         </button>
         <button
           onClick={() => setTab("diagram")}
-          className={`flex-1 py-2 text-xs font-medium border-b-2 transition-colors ${
-            tab === "diagram" ? "border-stone-900 text-stone-900" : "border-transparent text-stone-400"
-          }`}
+          className={`flex-1 py-2 text-xs font-medium border-b-2 transition-colors ${tab === "diagram" ? "border-stone-900 text-stone-900" : "border-transparent text-stone-400"
+            }`}
         >
           🏗️ Architecture
         </button>
       </div>
 
       {tab === "diagram" ? (
-        <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
-          {allDiagrams.length === 0 ? (
-            <p className="text-sm text-stone-400 text-center py-8">No diagram for this question.</p>
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Segmented Workspace Toggle */}
+          <div className="p-2 border-b border-stone-200 bg-stone-50/50 flex gap-2">
+            <div className="flex rounded-md bg-stone-100 p-0.5 border border-stone-200 w-full font-medium">
+              <button
+                type="button"
+                onClick={() => setWorkspaceMode("whiteboard")}
+                className={`flex-1 py-1 text-center rounded text-[10px] transition-all duration-150 cursor-pointer ${workspaceMode === "whiteboard"
+                    ? "bg-white text-stone-950 shadow-xs ring-1 ring-black/5"
+                    : "text-stone-500 hover:text-stone-850"
+                  }`}
+              >
+                🏗️ Design Workspace
+              </button>
+              <button
+                type="button"
+                onClick={() => setWorkspaceMode("reference")}
+                className={`flex-1 py-1 text-center rounded text-[10px] transition-all duration-150 cursor-pointer ${workspaceMode === "reference"
+                    ? "bg-white text-stone-950 shadow-xs ring-1 ring-black/5"
+                    : "text-stone-500 hover:text-stone-850"
+                  }`}
+              >
+                📖 Reference Solution
+              </button>
+            </div>
+          </div>
+
+          {workspaceMode === "whiteboard" ? (
+            <div className="flex-1 overflow-y-auto min-h-0 bg-stone-50">
+              <ArchitectureWhiteboard questionId={questionId} />
+            </div>
           ) : (
-            <>
-              <p className="text-[10px] text-stone-400 px-1">
-                Visual layout only — switch to <strong>Step-by-step Guide</strong> for explanations
-              </p>
+            <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+              {allDiagrams.length === 0 ? (
+                <p className="text-sm text-stone-400 text-center py-8">No diagram for this question.</p>
+              ) : (
+                <>
+                  <p className="text-[10px] text-stone-400 px-1">
+                    Visual layout only — switch to <strong>Step-by-step Guide</strong> for explanations
+                  </p>
 
-              {allDiagrams.length > 1 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {allDiagrams.map((d) => (
-                    <button
-                      key={d.id}
-                      onClick={() => { setActiveDiagramId(d.id); setSelectedNode(null); }}
-                      className={`text-xs px-2 py-1 rounded border ${
-                        activeDiagramId === d.id
-                          ? "bg-stone-900 text-white border-stone-900"
-                          : "border-stone-200 text-stone-500 hover:border-stone-400"
-                      }`}
-                    >
-                      {d.title.split("—")[1]?.trim() ?? d.title}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {currentDiagram && (
-                <ArchitectureDiagramView
-                  diagram={currentDiagram}
-                  compact
-                  onNodeClick={(node) => setSelectedNode(node)}
-                />
-              )}
-
-              {selectedNode && (
-                <div className="border border-stone-200 rounded-lg p-3 bg-stone-50">
-                  <div className="text-xs font-medium text-stone-700 mb-1">{selectedNode.label}</div>
-                  {selectedNode.sublabel && (
-                    <div className="text-[10px] text-stone-400 mb-1">{selectedNode.sublabel}</div>
+                  {allDiagrams.length > 1 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {allDiagrams.map((d) => (
+                        <button
+                          key={d.id}
+                          onClick={() => { setActiveDiagramId(d.id); setSelectedNode(null); }}
+                          className={`text-xs px-2 py-1 rounded border ${activeDiagramId === d.id
+                              ? "bg-stone-900 text-white border-stone-900"
+                              : "border-stone-200 text-stone-500 hover:border-stone-400"
+                            }`}
+                        >
+                          {d.title.split("—")[1]?.trim() ?? d.title}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                  <p className="text-xs text-stone-500">{NODE_EXPLAIN[selectedNode.type]}</p>
-                  <button
-                    onClick={() => askAboutNode(selectedNode)}
-                    className="text-xs text-stone-600 underline mt-2 hover:text-stone-900"
-                  >
-                    Explain in chat →
-                  </button>
-                </div>
-              )}
 
-              <p className="text-[10px] text-stone-400 text-center">
-                Click a component, then "Explain in chat" for a step-by-step breakdown
-              </p>
-            </>
+                  {currentDiagram && (
+                    <ArchitectureDiagramView
+                      diagram={currentDiagram}
+                      compact
+                      onNodeClick={(node) => setSelectedNode(node)}
+                    />
+                  )}
+
+                  {selectedNode && (
+                    <div className="border border-stone-200 rounded-lg p-3 bg-stone-50">
+                      <div className="text-xs font-medium text-stone-700 mb-1">{selectedNode.label}</div>
+                      {selectedNode.sublabel && (
+                        <div className="text-[10px] text-stone-400 mb-1">{selectedNode.sublabel}</div>
+                      )}
+                      <p className="text-xs text-stone-500">{NODE_EXPLAIN[selectedNode.type]}</p>
+                      <button
+                        onClick={() => askAboutNode(selectedNode)}
+                        className="text-xs text-stone-600 underline mt-2 hover:text-stone-900"
+                      >
+                        Explain in chat →
+                      </button>
+                    </div>
+                  )}
+
+                  <p className="text-[10px] text-stone-400 text-center">
+                    Click a component, then "Explain in chat" for a step-by-step breakdown
+                  </p>
+                </>
+              )}
+            </div>
           )}
         </div>
       ) : (
@@ -238,13 +285,12 @@ export default function DesignTutorChat({
                 return (
                   <div
                     key={s.id}
-                    className={`flex-1 text-center py-1 rounded text-[10px] font-medium ${
-                      active
+                    className={`flex-1 text-center py-1 rounded text-[10px] font-medium ${active
                         ? "bg-stone-900 text-white"
                         : done
-                        ? "bg-stone-200 text-stone-600"
-                        : "bg-stone-100 text-stone-400"
-                    }`}
+                          ? "bg-stone-200 text-stone-600"
+                          : "bg-stone-100 text-stone-400"
+                      }`}
                   >
                     {s.num}. {s.label.split(" ")[0]}
                   </div>
@@ -269,11 +315,10 @@ export default function DesignTutorChat({
               <div key={i}>
                 <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[95%] px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${
-                      msg.role === "user"
+                    className={`max-w-[95%] px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${msg.role === "user"
                         ? "bg-stone-900 text-white rounded-br-sm"
                         : "bg-stone-50 text-stone-700 border border-stone-100 rounded-bl-sm"
-                    }`}
+                      }`}
                   >
                     {renderMarkdown(msg.content)}
                   </div>

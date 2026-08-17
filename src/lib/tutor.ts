@@ -33,7 +33,7 @@ const STEP_LABELS: Record<DesignStep, string> = {
   requirements: "Requirements",
   api: "API & Data Model",
   architecture: "High-Level Design",
-  deep-dive: "Deep Dive",
+  "deep-dive": "Deep Dive",
 };
 
 function buildSystemPrompt(ctx: QuestionContext): string {

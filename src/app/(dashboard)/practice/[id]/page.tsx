@@ -7,6 +7,7 @@ import Timer, { formatTime } from "@/components/Timer";
 import DesignFramework, { serializeDesignNotes } from "@/components/DesignFramework";
 import DesignTutorChat from "@/components/DesignTutorChat";
 import { getDesignGuide } from "@/lib/design-knowledge";
+import { serializeWhiteboardToText } from "@/components/ArchitectureWhiteboard";
 
 type Question = {
   id: string;
@@ -82,7 +83,6 @@ export default function PracticeSession() {
         if (saved) {
           const { nodes, edges } = JSON.parse(saved);
           if (nodes && nodes.length > 0) {
-            const { serializeWhiteboardToText } = require("@/components/ArchitectureWhiteboard");
             whiteboardText = serializeWhiteboardToText(nodes, edges);
           }
         }

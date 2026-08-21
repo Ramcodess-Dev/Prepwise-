@@ -166,6 +166,8 @@ export default function PracticeSession() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [showTutor, setShowTutor] = useState(true);
+  const [hintIndex, setHintIndex] = useState(0);
+  const [tempRevealAnswer, setTempRevealAnswer] = useState(false);
 
   const isSystemDesign = question?.category === "system-design";
   const timeLimit = question ? TIME_LIMITS[question.difficulty] ?? TIME_LIMITS.medium : undefined;

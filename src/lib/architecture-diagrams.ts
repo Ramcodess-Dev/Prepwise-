@@ -36,15 +36,16 @@ export const NODE_STYLES: Record<
   NodeType,
   { fill: string; stroke: string; text: string; icon: string }
 > = {
-  client: { fill: "#eff6ff", stroke: "#3b82f6", text: "#1d4ed8", icon: "👤" },
-  gateway: { fill: "#f5f5f4", stroke: "#78716c", text: "#44403c", icon: "⚡" },
-  service: { fill: "#faf5ff", stroke: "#a855f7", text: "#7e22ce", icon: "⚙️" },
-  cache: { fill: "#fff7ed", stroke: "#f97316", text: "#c2410c", icon: "⚡" },
-  queue: { fill: "#fefce8", stroke: "#eab308", text: "#a16207", icon: "📨" },
-  db: { fill: "#ecfdf5", stroke: "#10b981", text: "#047857", icon: "🗄️" },
-  cdn: { fill: "#f0fdfa", stroke: "#14b8a6", text: "#0f766e", icon: "🌐" },
-  storage: { fill: "#f0fdf4", stroke: "#22c55e", text: "#15803d", icon: "📦" },
+  client: { fill: "#081320", stroke: "#2563eb", text: "#60a5fa", icon: "👤" },
+  gateway: { fill: "#081e18", stroke: "#10b981", text: "#34d399", icon: "⚡" },
+  service: { fill: "#130b20", stroke: "#8b5cf6", text: "#c084fc", icon: "⚙️" },
+  cache: { fill: "#1c1007", stroke: "#ea580c", text: "#ffedd5", icon: "⚡" },
+  queue: { fill: "#1a1605", stroke: "#ca8a04", text: "#fef9c3", icon: "📨" },
+  db: { fill: "#051e16", stroke: "#10b981", text: "#00ff66", icon: "🗄️" },
+  cdn: { fill: "#041b1d", stroke: "#0891b2", text: "#22d3ee", icon: "🌐" },
+  storage: { fill: "#081c0e", stroke: "#16a34a", text: "#86efac", icon: "📦" },
 };
+
 
 export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram[]> = {
   "Design a URL shortener": [
@@ -250,9 +251,66 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram[]> = {
       ],
     },
   ],
+  "Design YouTube": [
+    {
+      id: "youtube-overview",
+      title: "YouTube — High Level Architecture",
+      description: "Separate Upload path (Transcoding) and Playback path (CDN / Edge cache)",
+      nodes: [
+        { id: "uploader", label: "Video Creator", type: "client", layer: 0, col: 0 },
+        { id: "viewer", label: "Video Viewer", type: "client", layer: 0, col: 2 },
+        { id: "api-gw", label: "Zuul API Gateway", sublabel: "Routing / auth", type: "gateway", layer: 1, col: 1 },
+        { id: "upload-svc", label: "Upload Service", sublabel: "Handles ingestion", type: "service", layer: 2, col: 0 },
+        { id: "transcoder", label: "Transcoder Engine", sublabel: "Formats / resolutions", type: "service", layer: 3, col: 0 },
+        { id: "storage", label: "Blob Storage", sublabel: "Master video chunks", type: "storage", layer: 4, col: 0 },
+        { id: "cdn", label: "CDN Cache", sublabel: "Video playback edge", type: "cdn", layer: 4, col: 2 },
+        { id: "meta-db", label: "Video Metadata DB", sublabel: "User / video records", type: "db", layer: 3, col: 1 },
+        { id: "cache", label: "Redis Cache", sublabel: "Hot video metadata", type: "cache", layer: 3, col: 2 },
+      ],
+      edges: [
+        { from: "uploader", to: "api-gw", label: "Upload stream" },
+        { from: "viewer", to: "api-gw", label: "Search / comment" },
+        { from: "viewer", to: "cdn", label: "GET video chunks" },
+        { from: "api-gw", to: "upload-svc" },
+        { from: "upload-svc", to: "transcoder" },
+        { from: "transcoder", to: "storage" },
+        { from: "storage", to: "cdn", label: "chunk fanout", dashed: true },
+        { from: "api-gw", to: "meta-db" },
+        { from: "meta-db", to: "cache" },
+        { from: "api-gw", to: "cache" },
+      ],
+    },
+  ],
+  "Design Netflix": [
+    {
+      id: "netflix-overview",
+      title: "Netflix — High Level Architecture",
+      description: "AWS Control Plane / Playback API + Netflix Open Connect CDN Appliance Backbone",
+      nodes: [
+        { id: "viewer", label: "Netflix Device", sublabel: "TV / Mobile Client", type: "client", layer: 0, col: 1 },
+        { id: "api-gateway", label: "Zuul Gateway", type: "gateway", layer: 1, col: 1 },
+        { id: "playback-api", label: "Playback Service", sublabel: "Auth/DRM license", type: "service", layer: 2, col: 0 },
+        { id: "rec-engine", label: "ML Recommendation", sublabel: "Custom feed", type: "service", layer: 2, col: 2 },
+        { id: "open-connect", label: "Open Connect CDN", sublabel: "ISP co-located cache", type: "cdn", layer: 3, col: 1 },
+        { id: "s3-storage", label: "Blob Storage", sublabel: "Master video storage", type: "storage", layer: 4, col: 0 },
+        { id: "cassandra", label: "Cassandra", sublabel: "User playback metrics", type: "db", layer: 3, col: 0 },
+      ],
+      edges: [
+        { from: "viewer", to: "api-gateway", label: "Auth / Browse" },
+        { from: "api-gateway", to: "playback-api" },
+        { from: "api-gateway", to: "rec-engine" },
+        { from: "viewer", to: "open-connect", label: "Stream chunks" },
+        { from: "open-connect", to: "s3-storage", label: "nightly sync", dashed: true },
+        { from: "playback-api", to: "cassandra" },
+      ],
+    },
+  ],
 };
 
 export function getDiagramsForQuestion(title: string): ArchitectureDiagram[] {
+  const t = title.toLowerCase();
+  if (t.includes("youtube")) return ARCHITECTURE_DIAGRAMS["Design YouTube"] || [];
+  if (t.includes("netflix")) return ARCHITECTURE_DIAGRAMS["Design Netflix"] || [];
   return ARCHITECTURE_DIAGRAMS[title] ?? [];
 }
 

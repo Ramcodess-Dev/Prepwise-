@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import ArchitectureDiagramView from "@/components/ArchitectureDiagram";
-import ArchitectureWhiteboard from "@/components/ArchitectureWhiteboard";
+import ArchitectureWhiteboard, { serializeWhiteboardToText } from "@/components/ArchitectureWhiteboard";
 import {
   getDiagram,
   getDiagramsForQuestion,
@@ -143,7 +143,6 @@ export default function DesignTutorChat({
         if (saved) {
           const { nodes, edges } = JSON.parse(saved);
           if (nodes && nodes.length > 0) {
-            const { serializeWhiteboardToText } = require("./ArchitectureWhiteboard");
             whiteboardSummary = serializeWhiteboardToText(nodes, edges);
           }
         }
@@ -465,8 +464,8 @@ export default function DesignTutorChat({
                 onClick={startSpeechRecognition}
                 disabled={loading}
                 className={`px-2.5 py-2 rounded border focus:outline-none flex items-center justify-center transition-all ${isListening
-                    ? "bg-red-500/25 border-red-500 text-red-500 animate-pulse"
-                    : "bg-[#060b09] border-stone-200 text-stone-507 hover:border-[#00ff66] hover:text-[#00ff66]"
+                  ? "bg-red-500/25 border-red-500 text-red-500 animate-pulse"
+                  : "bg-[#060b09] border-stone-200 text-stone-507 hover:border-[#00ff66] hover:text-[#00ff66]"
                   }`}
                 title="Speak your doubt (Voice Dictation)"
               >

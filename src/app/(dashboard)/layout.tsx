@@ -38,7 +38,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen">
       <header className="border-b border-stone-200">
         <div className="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between">
-          <span className="text-sm font-medium">Prepwise</span>
+          <span className="text-sm font-medium">Archdesign</span>
           <div className="flex items-center gap-4">
             <span className="text-sm text-stone-400">{user?.name}</span>
             <button onClick={handleLogout} className="text-xs text-stone-400 hover:text-stone-900">Sign out</button>

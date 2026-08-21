@@ -42,7 +42,7 @@ function buildSystemPrompt(ctx: QuestionContext): string {
     ? `\nKey components: ${guide.keyComponents.join("; ")}\nCommon pitfalls: ${guide.commonPitfalls.join("; ")}`
     : "";
 
-  return `You are Prepwise Design Tutor — a step-by-step system design interview coach for "${ctx.title}".
+  return `You are Archdesign Design Tutor — a step-by-step system design interview coach for "${ctx.title}".
 Description: ${ctx.description}${guideText}
 
 You guide through 4 steps ONLY in text (never describe drawing diagrams — user sees diagrams in a separate Architecture tab):

@@ -4,7 +4,7 @@ import BinaryBackground from "@/components/BinaryBackground";
 import HackingConsole from "@/components/HackingConsole";
 
 export const metadata: Metadata = {
-  title: "Prepwise",
+  title: "Archdesign",
   description: "Interview preparation, simplified.",
 };
 

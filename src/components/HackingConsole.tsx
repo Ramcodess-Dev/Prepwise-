@@ -76,7 +76,7 @@ export default function HackingConsole() {
         break;
 
       case "/sysinfo":
-        addLog("PREPWISE NODE CONFIGURATION:", "info");
+        addLog("ARCHDESIGN NODE CONFIGURATION:", "info");
         addLog(`  PLATFORM: client-sandbox // CPU: WebAssembly Engine`, "output");
         addLog(`  INTELLIGENCE CORE: tutorchat-v4.exe`, "output");
         addLog(`  AUDIO EXTENSIONS: WebAudio Synthesizer`, "output");
@@ -179,7 +179,7 @@ export default function HackingConsole() {
           <div className="px-3 py-2 bg-stone-100 border-b border-stone-250 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-              <span className="text-[10px] text-stone-500 font-bold">PREPWISE_SHELL://v1.45</span>
+              <span className="text-[10px] text-stone-500 font-bold">ARCHDESIGN_SHELL://v1.45</span>
             </div>
             <div className="flex items-center gap-3">
               <button

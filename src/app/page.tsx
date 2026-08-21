@@ -63,7 +63,7 @@ export default function Landing() {
         </div>
 
         <h1 className="text-3xl font-extrabold tracking-widest text-center mb-1 text-stone-900 terminal-glow font-mono uppercase">
-          PREPWISE
+          ARCHDESIGN
         </h1>
         <p className="text-center text-stone-400 text-xs mb-8 uppercase tracking-wider font-mono">
           [ Interview decryption framework ]
@@ -95,7 +95,7 @@ export default function Landing() {
           )}
           <div>
             <label className="text-[10px] text-stone-400 block mb-1 uppercase font-mono tracking-wider">Email Address</label>
-            <input type="email" placeholder="e.g. operator@prepwise.sys" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full text-sm" required />
+            <input type="email" placeholder="e.g. operator@archdesign.sys" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full text-sm" required />
           </div>
           <div>
             <label className="text-[10px] text-stone-400 block mb-1 uppercase font-mono tracking-wider">Access Cipher</label>

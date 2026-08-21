@@ -1,4 +1,4 @@
-# Prepwise
+# Archdesign
 
 Interview preparation, simplified. A minimalistic SaaS app to help you prepare for interviews with a question bank, timed practice sessions, and progress tracking.
 

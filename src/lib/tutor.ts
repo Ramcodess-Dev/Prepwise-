@@ -159,6 +159,114 @@ function buildResponse(
   };
 }
 
+const COMPONENT_EXPLANATIONS: Record<string, { purpose: string; scale: string; tradeOffs: string }> = {
+  client: {
+    purpose: "Represents the client applications (web browser, mobile app, smart TV). It initiates requests, renders the interface, caches static assets locally, and handles user interactions.",
+    scale: "Scales via user distribution. Can offload rendering logic (Single Page Apps) and aggregate API gateway queries to save bandwidth.",
+    tradeOffs: "Thick client (more logic, faster responses, harder updates) vs Thin client (less logic, dependent on network, easier updates)."
+  },
+  gateway: {
+    purpose: "Acts as the single entry point for all clients. Routes traffic to appropriate microservices, terminates SSL/TLS connection, handles authentication/authorization, and rate limits incoming requests.",
+    scale: "Scales horizontally behind a DNS Round-Robin or Global Server Load Balancer (GSLB) using active-active gateway clusters.",
+    tradeOffs: "Centralized control and security, but adds a network hop and can become a single point of failure (SPOF) if not clustered correctly."
+  },
+  service: {
+    purpose: "Implements the core business logic. Microservices are decoupled and stateless, enabling developers to build, deploy, and scale distinct functions independently.",
+    scale: "Scales horizontally by spinning up more container instances (Docker/Kubernetes) based on CPU/Memory usage metrics.",
+    tradeOffs: "High flexibility and agility, but introduces operational complexity, distributed transaction trade-offs, and microservices network latency."
+  },
+  cache: {
+    purpose: "Stores frequently accessed, read-heavy, or computation-heavy data in memory (like Redis or Memcached). This avoids expensive database queries and dramatically lowers read latency.",
+    scale: "Scales using Redis Cluster sharding, key partitioning, and read replicas for high throughput.",
+    tradeOffs: "Extremely fast reads, but introduces cache consistency challenges (Cache-Aside, Write-Through) and memory capacity limits."
+  },
+  queue: {
+    purpose: "Provides asynchronous, decoupled message buffering (such as Kafka or RabbitMQ) between services. It ensures system resilience, absorbing spikes in load and executing background jobs.",
+    scale: "Scales by partitioning message logs across broker nodes, allowing concurrent consumers to process messages in parallel.",
+    tradeOffs: "Guarantees eventual consistency and durability, but increases system complexity and raises message ordering and deduplication issues."
+  },
+  db: {
+    purpose: "Provides persistent, queryable data storage. Relational databases (SQL) offer ACID transactions and relational integrity, while NoSQL DBs (like Cassandra or MongoDB) offer schema flexibility and high write scalability.",
+    scale: "Scales vertically (bigger server), or horizontally using database sharding, primary-secondary replication for read scaling, and multi-master clustering.",
+    tradeOffs: "Strict schema rigidity (SQL) vs flexible scaling (NoSQL); CAP Theorem trade-offs (Consistency vs Availability during partition)."
+  },
+  cdn: {
+    purpose: "A geographically distributed network of proxy servers (like Cloudflare or Akamai) that cache static files, images, and video chunks closer to users to reduce latency and origin payload.",
+    scale: "Scales by deploying point-of-presence (PoP) edge servers globally, resolving DNS queries to the nearest location using Anycast routing.",
+    tradeOffs: "Significantly lowers server bandwidth cost and latency, but cache invalidation of dynamic content can be difficult."
+  },
+  storage: {
+    purpose: "Object storage (such as AWS S3 or Google Cloud Storage) designed to store highly durable, unstructured files like video files, profile pictures, and backups at low cost.",
+    scale: "Internally distributed and virtually unlimited capacity, providing 99.999999999% durability guarantees by duplicating data across geographical regions.",
+    tradeOffs: "Excellent cost efficiency and durability for massive file storage, but read/write latency is higher than block storage or databases."
+  },
+  transcoder: {
+    purpose: "Takes uploaded master videos and transcodes them into standard configurations, different video formats (H.264, VP9), bitrates, and adaptive resolutions (1080p, 720p, 480p) to match the viewer's network bandwidth.",
+    scale: "Uses distributed worker pools and message queues (like AWS Elemental MediaConvert or custom FFmpeg units on Kubernetes) to process video chunks concurrently.",
+    tradeOffs: "Crucial for optimal playback experience, but requires intensive CPU/GPU computing power and significant storage copy overhead."
+  },
+  recommendation: {
+    purpose: "Analyzes user history, search logs, and playback metrics using machine learning pipelines to compute a customized recommendation feed vector, increasing user engagement.",
+    scale: "Utilizes offline batch processing (Apache Spark/Flink) to train models, and fast real-time scoring caches for immediate user fetch.",
+    tradeOffs: "Drastically improves session retention, but introduces cold-start problems and data engineering infrastructure complexities."
+  }
+};
+
+function getComponentExplanation(componentName: string): string {
+  const queryLower = componentName.toLowerCase();
+
+  let entry = COMPONENT_EXPLANATIONS.service;
+  let keyFound = "Service";
+
+  if (queryLower.includes("client") || queryLower.includes("device") || queryLower.includes("creator") || queryLower.includes("viewer")) {
+    entry = COMPONENT_EXPLANATIONS.client;
+    keyFound = "Client Application";
+  } else if (queryLower.includes("gateway") || queryLower.includes("zuul") || queryLower.includes("load balancer")) {
+    entry = COMPONENT_EXPLANATIONS.gateway;
+    keyFound = "API Gateway / Load Balancer";
+  } else if (queryLower.includes("transcoder") || queryLower.includes("engine") || queryLower.includes("format")) {
+    entry = COMPONENT_EXPLANATIONS.transcoder;
+    keyFound = "Transcoding Engine";
+  } else if (queryLower.includes("recommend") || queryLower.includes("feed") || queryLower.includes("ml")) {
+    entry = COMPONENT_EXPLANATIONS.recommendation;
+    keyFound = "ML Recommendation Engine";
+  } else if (queryLower.includes("upload") || queryLower.includes("ingestion")) {
+    entry = COMPONENT_EXPLANATIONS.service;
+    keyFound = "Upload Service";
+  } else if (queryLower.includes("playback") || queryLower.includes("drm") || queryLower.includes("license")) {
+    entry = COMPONENT_EXPLANATIONS.service;
+    keyFound = "Playback Service";
+  } else if (queryLower.includes("cache") || queryLower.includes("redis")) {
+    entry = COMPONENT_EXPLANATIONS.cache;
+    keyFound = "In-Memory Cache (Redis)";
+  } else if (queryLower.includes("queue") || queryLower.includes("kafka") || queryLower.includes("broker")) {
+    entry = COMPONENT_EXPLANATIONS.queue;
+    keyFound = "Message Queue (Kafka)";
+  } else if (queryLower.includes("cdn") || queryLower.includes("connect") || queryLower.includes("edge")) {
+    entry = COMPONENT_EXPLANATIONS.cdn;
+    keyFound = "CDN / Edge Cache";
+  } else if (queryLower.includes("storage") || queryLower.includes("s3") || queryLower.includes("blob")) {
+    entry = COMPONENT_EXPLANATIONS.storage;
+    keyFound = "Blob Storage (S3)";
+  } else if (queryLower.includes("db") || queryLower.includes("database") || queryLower.includes("cassandra") || queryLower.includes("table")) {
+    entry = COMPONENT_EXPLANATIONS.db;
+    keyFound = "Database (relational/NoSQL)";
+  }
+
+  return `### Component Explanation: **${componentName}** (resolved as ${keyFound})
+
+**What it's used for:**
+${entry.purpose}
+
+**How it scales:**
+${entry.scale}
+
+**Key Trade-offs:**
+${entry.tradeOffs}
+
+**Next step:** Go back to the **Architecture tab** and click on other components, or switch to the **Step-by-step Guide** to continue the interview stages.`;
+}
+
 function fallbackResponse(messages: ChatMessage[], ctx: QuestionContext): TutorResponse {
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   const query = (lastUser?.content ?? "").toLowerCase();

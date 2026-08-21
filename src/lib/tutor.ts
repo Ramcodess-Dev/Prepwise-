@@ -277,6 +277,15 @@ function fallbackResponse(messages: ChatMessage[], ctx: QuestionContext): TutorR
     return buildResponse(introMessage(ctx, guide), "requirements", ctx, query);
   }
 
+  // Pre-emptively detect specific architectural component description queries
+  if (query.includes("explain the") && query.includes("component")) {
+    const compMatch = lastUser.content.match(/explain the (.*) component/i);
+    const componentName = compMatch ? compMatch[1].trim() : "";
+    if (componentName) {
+      return buildResponse(getComponentExplanation(componentName), "architecture", ctx, lastUser.content);
+    }
+  }
+
   if (query.includes("next") || query.includes("what now") || query.includes("continue")) {
     return buildResponse(nextStepGuide(step, ctx, guide), step, ctx, query);
   }

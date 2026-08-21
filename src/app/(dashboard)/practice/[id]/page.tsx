@@ -437,6 +437,49 @@ export default function PracticeSession() {
                 )}
               </div>
             </div>
+
+            {/* Hints Section */}
+            {QUESTION_HINTS[question.title] ? (
+              <div className="border-t border-stone-200 pt-3 mt-3">
+                <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 font-mono">
+                  [ INDUCED CLUES & HINTS ]
+                </h4>
+
+                {hintIndex === 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => { setHintIndex(1); playCyberSound("click"); }}
+                    className="w-full py-1.5 bg-[#060b09] hover:bg-stone-900 border border-[#00ff66] text-[#00ff66] text-xs font-mono rounded font-bold uppercase tracking-wider transition-all"
+                  >
+                    🔓 Request Initial Hint
+                  </button>
+                ) : (
+                  <div className="space-y-3 font-mono">
+                    <div className="bg-[#060b09] border border-stone-200 p-3 rounded text-xs leading-relaxed text-stone-300">
+                      <strong>Hint {hintIndex}:</strong> {QUESTION_HINTS[question.title].hints[hintIndex - 1]}
+                    </div>
+                    <div className="flex gap-2">
+                      {hintIndex < QUESTION_HINTS[question.title].hints.length && (
+                        <button
+                          type="button"
+                          onClick={() => { setHintIndex(hi => hi + 1); playCyberSound("click"); }}
+                          className="flex-grow py-1 px-2 border border-stone-200 bg-[#060b09] text-[#00ff66] hover:bg-stone-900 rounded text-[10px] font-bold active:scale-95 transition-all text-center"
+                        >
+                          Next Hint ➔
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => { setHintIndex(0); playCyberSound("click"); }}
+                        className="py-1 px-2 border border-stone-200 text-stone-450 hover:text-stone-900 rounded text-[10px] active:scale-95 transition-all"
+                      >
+                        Reset Hints
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       )}

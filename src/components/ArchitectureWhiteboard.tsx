@@ -369,8 +369,8 @@ export default function ArchitectureWhiteboard({
           <button
             onClick={() => { setTool("select"); setConnectionStartId(null); }}
             className={`px-3 py-1.5 rounded border transition-all flex items-center gap-1 ${tool === "select"
-                ? "bg-stone-900 border-stone-900 text-white font-medium shadow-sm"
-                : "bg-white border-stone-200 text-stone-600 hover:border-stone-400"
+              ? "bg-stone-900 border-stone-900 text-white font-medium shadow-sm"
+              : "bg-white border-stone-200 text-stone-600 hover:border-stone-400"
               }`}
             title="Move & Select Elements"
           >
@@ -379,8 +379,8 @@ export default function ArchitectureWhiteboard({
           <button
             onClick={() => { setTool("connect"); setSelectedNodeId(null); }}
             className={`px-3 py-1.5 rounded border transition-all flex items-center gap-1 ${tool === "connect"
-                ? "bg-amber-800 border-amber-800 text-white font-medium shadow-sm animate-pulse"
-                : "bg-white border-stone-200 text-stone-600 hover:border-stone-400"
+              ? "bg-amber-800 border-amber-800 text-white font-medium shadow-sm animate-pulse"
+              : "bg-white border-stone-200 text-stone-600 hover:border-stone-400"
               }`}
             title="Click Node A, hold/drag, & release on Node B to connect"
           >
@@ -399,8 +399,8 @@ export default function ArchitectureWhiteboard({
                   key={type}
                   onClick={() => { setTool(type); setConnectionStartId(null); }}
                   className={`px-2 py-1 rounded border capitalize flex items-center gap-1 transition-all ${isSelected
-                      ? "border-stone-900 ring-2 ring-stone-900 font-semibold"
-                      : "bg-white border-stone-200 text-stone-600 hover:border-stone-400"
+                    ? "border-stone-900 ring-2 ring-stone-900 font-semibold"
+                    : "bg-white border-stone-200 text-stone-600 hover:border-stone-400"
                     }`}
                   style={isSelected ? { backgroundColor: style.fill, color: style.text } : {}}
                   title={`Click to select, then click on canvas to spawn a ${type}`}
@@ -435,7 +435,7 @@ export default function ArchitectureWhiteboard({
       {/* CANVAS CONTAINER */}
       <div className="relative flex-1 overflow-auto bg-stone-50 border border-stone-200 cursor-crosshair min-h-[350px]">
         {/* Helper Instructions bar overlay */}
-        <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-white/90 backdrop-blur border border-stone-200/80 rounded-md text-[9px] text-stone-500 pointer-events-none">
+        <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-stone-950/85 backdrop-blur border border-stone-300 rounded-md text-[9px] text-stone-705 pointer-events-none font-mono">
           {tool === "select" && "🖱️ Drag nodes to move. Double-click node to rename. Click lines to edit."}
           {tool === "connect" && "➡️ Press pointer on a node, drag and drop on another node to connect."}
           {tool !== "select" && tool !== "connect" && `📍 Click on the canvas to place a new ${tool}.`}
@@ -455,7 +455,7 @@ export default function ArchitectureWhiteboard({
           {/* SVG GRID BACKGROUND */}
           <defs>
             <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="1" fill="#e5e5e0" />
+              <circle cx="1" cy="1" r="1" fill="rgba(0, 255, 102, 0.15)" />
             </pattern>
             <marker
               id="arrowhead-whiteboard"
@@ -465,7 +465,7 @@ export default function ArchitectureWhiteboard({
               refY="3"
               orient="auto"
             >
-              <polygon points="0 0, 8 3, 0 6" fill="#78716c" />
+              <polygon points="0 0, 8 3, 0 6" fill="#10b981" />
             </marker>
             <marker
               id="arrowhead-whiteboard-dashed"
@@ -475,12 +475,13 @@ export default function ArchitectureWhiteboard({
               refY="3"
               orient="auto"
             >
-              <polygon points="0 0, 8 3, 0 6" fill="#a8a29e" />
+              <polygon points="0 0, 8 3, 0 6" fill="rgba(16, 185, 129, 0.7)" />
             </marker>
             <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
-              <feDropShadow dx="1" dy="1.5" stdDeviation="1.5" floodColor="#78716c" floodOpacity="0.12" />
+              <feDropShadow dx="1" dy="1.5" stdDeviation="1.5" floodColor="#00ff66" floodOpacity="0.08" />
             </filter>
           </defs>
+
 
           {/* Grid Layer */}
           <rect width={CANVAS_W} height={CANVAS_H} fill="url(#grid)" />

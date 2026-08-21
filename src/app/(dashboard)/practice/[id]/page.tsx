@@ -480,6 +480,55 @@ export default function PracticeSession() {
                 )}
               </div>
             ) : null}
+
+            {/* Starter boilerplate code */}
+            {QUESTION_HINTS[question.title]?.boilerplate && (
+              <div className="border-t border-stone-200 pt-3 mt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-widest font-mono">
+                    [ STARTER CODE TEMPLATE ]
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      copyBoilerplateToEditor(QUESTION_HINTS[question.title].boilerplate || "");
+                      playCyberSound("success");
+                    }}
+                    className="text-[9px] px-1.5 py-0.5 rounded border border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/10 font-mono"
+                    title="Insert template into editor"
+                  >
+                    📋 Insert in Editor
+                  </button>
+                </div>
+                <pre className="bg-[#020403] border border-stone-200/50 p-2 rounded text-[10px] overflow-auto max-h-36 font-mono text-[#39ff14] leading-normal select-text">
+                  {QUESTION_HINTS[question.title].boilerplate}
+                </pre>
+              </div>
+            )}
+
+            {/* Answer Peek */}
+            <div className="border-t border-stone-200 pt-3 mt-3 font-mono">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                  [ REFERENCE KEY PEEK ]
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => { setTempRevealAnswer(!tempRevealAnswer); playCyberSound("click"); }}
+                  className={`text-[9px] px-2 py-0.5 rounded border ${tempRevealAnswer
+                    ? "bg-red-500/10 border-red-500 text-red-500 font-bold"
+                    : "bg-[#060b09] border-stone-200 text-stone-400 hover:border-[#00ff66] hover:text-[#00ff66]"
+                    }`}
+                >
+                  {tempRevealAnswer ? "🙈 HIDE ANSWER KEY" : "👁️ PEEK REFERENCE ANSWER"}
+                </button>
+              </div>
+              {tempRevealAnswer && (
+                <div className="mt-2 p-3 bg-[#020403] border border-stone-200/50 rounded text-[11px] text-stone-300 leading-relaxed font-mono select-text">
+                  {question.answer}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

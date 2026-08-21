@@ -8,6 +8,7 @@ import DesignFramework, { serializeDesignNotes } from "@/components/DesignFramew
 import DesignTutorChat from "@/components/DesignTutorChat";
 import { getDesignGuide } from "@/lib/design-knowledge";
 import { serializeWhiteboardToText } from "@/components/ArchitectureWhiteboard";
+import { playCyberSound } from "@/lib/cyber-audio";
 
 type Question = {
   id: string;
@@ -22,6 +23,132 @@ const TIME_LIMITS: Record<string, number> = {
   easy: 15 * 60,
   medium: 25 * 60,
   hard: 45 * 60,
+};
+
+const QUESTION_HINTS: Record<string, { hints: string[]; boilerplate?: string; structureGuide: string }> = {
+  "Tell me about yourself": {
+    hints: [
+      "Keep it professional and under 2 minutes.",
+      "Use the Present-Past-Future framework: state your current role and achievements, highlight relevant past projects, and close with why this job is the perfect next step.",
+      "Avoid sharing personal histories or repeating your resume verbatim."
+    ],
+    structureGuide: "Present (Current Role) ➔ Past (Relevant Projects) ➔ Future (Why this role?)"
+  },
+  "Tell me about a time you faced a challenge": {
+    hints: [
+      "Select a situation with a clear, resolution-focused outcome.",
+      "Spend 80% of your time on the Action (what YOU did) and Result.",
+      "Show how you collaborated, solved conflicts, or managed technical complexity."
+    ],
+    structureGuide: "Situation (Context) ➔ Task (Goal) ➔ Action (Your steps) ➔ Result (Measurable outcome)"
+  },
+  "Why do you want to work here?": {
+    hints: [
+      "Mention a specific product, engineering challenge, or core value of the company.",
+      "Show how their culture aligns with your career goals and how you can add value.",
+      "Don't sound generic; do actual research on their latest public engineering posts or news."
+    ],
+    structureGuide: "Company Appeal ➔ Personal Alignment ➔ Synergy & Value Add"
+  },
+  "Describe a conflict with a coworker": {
+    hints: [
+      "Choose a minor professional disagreement, NEVER a personal grievance.",
+      "Highlight how you active-listened, validated their view, and focused on team goals.",
+      "Show that you remain respectful and compromise for optimal engineering outcomes."
+    ],
+    structureGuide: "Context of Conflict ➔ Your Communication Strategy ➔ Collaborative Resolution ➔ Key Lessons"
+  },
+  "Reverse a linked list": {
+    hints: [
+      "Use an iterative approach with 3 pointers: prev (null), curr (head), and next (null).",
+      "During iteration, temporarily save curr.next, point curr.next to prev, then advance prev to curr, and advance curr to next.",
+      "Time complexity should be O(N) and space complexity should be O(1)."
+    ],
+    boilerplate: `/* Single Linked List Node:
+ * class ListNode {
+ *   val: number;
+ *   next: ListNode | null;
+ * }
+ */
+function reverseList(head: ListNode | null): ListNode | null {
+  let prev = null;
+  let curr = head;
+  
+  while (curr !== null) {
+    let nextTemp = curr.next;
+    curr.next = prev;
+    prev = curr;
+    curr = nextTemp;
+  }
+  
+  return prev;
+}`,
+    structureGuide: "Pointers initialization ➔ While Loop Iteration ➔ Link Reversal ➔ Return Head"
+  },
+  "Two Sum": {
+    hints: [
+      "A brute force O(N^2) solution uses nested arrays, but you can optimize to O(N) using a Hash Map.",
+      "Store each number's complement (target - value) and its index as you iterate.",
+      "For each step, check if the current number is already in your Hash Map. If yes, you found the matching indexes!"
+    ],
+    boilerplate: `function twoSum(nums: number[], target: number): number[] {
+  const map = new Map<number, number>(); // val -> index
+  
+  for (let i = 0; i < nums.length; i++) {
+    const complement = target - nums[i];
+    if (map.has(complement)) {
+      return [map.get(complement)!, i];
+    }
+    map.set(nums[i], i);
+  }
+  
+  return [];
+}`,
+    structureGuide: "Map Definition ➔ Single Pass Loop ➔ Complement Checks ➔ Index Returns"
+  },
+  "Design a rate limiter": {
+    hints: [
+      "Determine if the rate limiter should be client-side, API gateway middleware, or a reverse proxy sidecar.",
+      "Understand the key algorithms: Token Bucket, Leaking Bucket, Fixed Window, Sliding Window Log, Sliding Window Counter.",
+      "In a distributed system, use Redis to store requests counters and handle race conditions using Lua scripts or Redis sorted sets."
+    ],
+    boilerplate: `// Middleware structure / Token Bucket algorithm representation
+class RateLimiter {
+  private capacities: Map<string, number>; // client_id -> tokens
+  
+  constructor(private limit: number, private windowMs: number) {}
+  
+  allowRequest(clientId: string): boolean {
+    // Write rate limiting logic
+    return true;
+  }
+}`,
+    structureGuide: "Choose Algorithm ➔ Define Store Schema (Redis/Memory) ➔ Middleware Checks ➔ HTTP Response Headers"
+  },
+  "Design a URL shortener": {
+    hints: [
+      "Estimate write/read QPS first. If 100M URLs are generated per day, write QPS is ~1160, and read QPS is likely 10x-100x higher.",
+      "Use Base62 encoding (a-z, A-Z, 0-9) to compress a 64-bit auto-incrementing ID into a short string.",
+      "Implement a Redis cache for hot URL mappings. Set HTTP status to 301 (Permanent Redirect) so browsers cache it."
+    ],
+    structureGuide: "Write Path (Counter + Base62) ➔ Read Path (Redis Cache ➔ SQL/NoSQL DB) ➔ Redirect Headers"
+  },
+  "Design a chat system": {
+    hints: [
+      "Use WebSockets for real-time bi-directional message sending to active clients.",
+      "Use a Message Queue (like Kafka) to decouple message ingestion from the storage/fanout database execution.",
+      "Design a Presence Service using a Redis heartbeat to track online status."
+    ],
+    structureGuide: "WebSocket Handshake ➔ Ingestion Gateway ➔ Kafka Queue ➔ Chat DB Store ➔ Push Notifications"
+  },
+  "Design a news feed": {
+    hints: [
+      "Compare Feed Fan-out architectures: Push model (write fan-out, timelines pre-rendered) vs Pull model (read fan-out, feed generated on fly).",
+      "For celebrities with millions of followers, push fan-out causes severe write amplification. Use a Hybrid approach.",
+      "Cache timelines in Redis Sorted Sets, storing post IDs sorted by timestamp."
+    ],
+    structureGuide: "Post Upload API ➔ Hybrid Fanout Engine ➔ User Timeline Redis Cache ➔ Media CDN"
+  }
 };
 
 export default function PracticeSession() {

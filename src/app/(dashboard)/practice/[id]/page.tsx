@@ -289,8 +289,8 @@ export default function PracticeSession() {
   }
 
   return (
-    <div className={isSystemDesign && showTutor ? "grid grid-cols-1 lg:grid-cols-5 gap-6" : ""}>
-      <div className={isSystemDesign && showTutor ? "lg:col-span-3" : "max-w-2xl"}>
+    <div className={running ? "grid grid-cols-1 lg:grid-cols-5 gap-6" : ""}>
+      <div className={running ? "lg:col-span-3" : "max-w-2xl"}>
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">

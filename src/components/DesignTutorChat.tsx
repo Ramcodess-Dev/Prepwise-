@@ -9,6 +9,7 @@ import {
   type ArchNode,
 } from "@/lib/architecture-diagrams";
 import type { DesignStep } from "@/lib/tutor";
+import { playCyberSound } from "@/lib/cyber-audio";
 
 type Message = {
   role: "user" | "assistant";
@@ -62,7 +63,54 @@ export default function DesignTutorChat({
   const [activeDiagramId, setActiveDiagramId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<ArchNode | null>(null);
   const [currentStep, setCurrentStep] = useState<DesignStep>("requirements");
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  function speakResponse(text: string) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const cleanText = text
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*]+)\*/g, "$1")
+      .replace(/`([^`]+)`/g, "$1");
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.pitch = 1.05;
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function startSpeechRecognition() {
+    if (typeof window === "undefined") return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => {
+      setIsListening(true);
+      playCyberSound("click");
+    };
+    recognition.onerror = () => {
+      setIsListening(false);
+      playCyberSound("error");
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0]?.[0]?.transcript;
+      if (transcript) {
+        setInput(transcript);
+        playCyberSound("success");
+      }
+    };
+    recognition.start();
+  }
 
   const allDiagrams = getDiagramsForQuestion(questionTitle);
   const currentDiagram = getDiagram(questionTitle, activeDiagramId ?? allDiagrams[0]?.id ?? "");
@@ -123,6 +171,9 @@ export default function DesignTutorChat({
           nextStepLabel: data.nextStepLabel,
         },
       ]);
+      if (ttsEnabled) {
+        speakResponse(data.reply);
+      }
     } catch {
       setMessages([
         ...newMessages,
@@ -156,14 +207,36 @@ export default function DesignTutorChat({
       <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 bg-stone-50 rounded-t-lg">
         <div>
           <h3 className="text-sm font-medium">Design Tutor</h3>
-          <p className="text-xs text-stone-400 truncate max-w-[180px]">{questionTitle}</p>
+          <p className="text-xs text-stone-400 truncate max-w-[150px]">{questionTitle}</p>
         </div>
-        <button
-          onClick={() => setCollapsed(true)}
-          className="text-xs text-stone-400 hover:text-stone-900 px-2 py-1"
-        >
-          Minimize
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const next = !ttsEnabled;
+              setTtsEnabled(next);
+              if (!next && typeof window !== "undefined") {
+                window.speechSynthesis?.cancel();
+              }
+            }}
+            className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${ttsEnabled ? "bg-stone-900 text-[#00ff66] border-[#00ff66]" : "bg-transparent text-stone-450 border-stone-200"
+              }`}
+          >
+            {ttsEnabled ? "🔊 VOICE ON" : "🔇 VOICE OFF"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setCollapsed(true);
+              if (typeof window !== "undefined") {
+                window.speechSynthesis?.cancel();
+              }
+            }}
+            className="text-xs text-stone-405 hover:text-stone-900 px-1 py-0.5"
+          >
+            Minimize
+          </button>
+        </div>
       </div>
 
       <div className="flex border-b border-stone-200">
@@ -192,8 +265,8 @@ export default function DesignTutorChat({
                 type="button"
                 onClick={() => setWorkspaceMode("whiteboard")}
                 className={`flex-1 py-1 text-center rounded text-[10px] transition-all duration-150 cursor-pointer ${workspaceMode === "whiteboard"
-                    ? "bg-white text-stone-950 shadow-xs ring-1 ring-black/5"
-                    : "text-stone-500 hover:text-stone-850"
+                  ? "bg-white text-stone-950 shadow-xs ring-1 ring-black/5"
+                  : "text-stone-500 hover:text-stone-850"
                   }`}
               >
                 🏗️ Design Workspace
@@ -202,8 +275,8 @@ export default function DesignTutorChat({
                 type="button"
                 onClick={() => setWorkspaceMode("reference")}
                 className={`flex-1 py-1 text-center rounded text-[10px] transition-all duration-150 cursor-pointer ${workspaceMode === "reference"
-                    ? "bg-white text-stone-950 shadow-xs ring-1 ring-black/5"
-                    : "text-stone-500 hover:text-stone-850"
+                  ? "bg-white text-stone-950 shadow-xs ring-1 ring-black/5"
+                  : "text-stone-500 hover:text-stone-850"
                   }`}
               >
                 📖 Reference Solution
@@ -232,8 +305,8 @@ export default function DesignTutorChat({
                           key={d.id}
                           onClick={() => { setActiveDiagramId(d.id); setSelectedNode(null); }}
                           className={`text-xs px-2 py-1 rounded border ${activeDiagramId === d.id
-                              ? "bg-stone-900 text-white border-stone-900"
-                              : "border-stone-200 text-stone-500 hover:border-stone-400"
+                            ? "bg-stone-900 text-white border-stone-900"
+                            : "border-stone-200 text-stone-500 hover:border-stone-400"
                             }`}
                         >
                           {d.title.split("—")[1]?.trim() ?? d.title}
@@ -286,10 +359,10 @@ export default function DesignTutorChat({
                   <div
                     key={s.id}
                     className={`flex-1 text-center py-1 rounded text-[10px] font-medium ${active
-                        ? "bg-stone-900 text-white"
-                        : done
-                          ? "bg-stone-200 text-stone-600"
-                          : "bg-stone-100 text-stone-400"
+                      ? "bg-stone-900 text-white"
+                      : done
+                        ? "bg-stone-200 text-stone-600"
+                        : "bg-stone-100 text-stone-400"
                       }`}
                   >
                     {s.num}. {s.label.split(" ")[0]}
@@ -312,12 +385,22 @@ export default function DesignTutorChat({
             )}
 
             {messages.map((msg, i) => (
-              <div key={i}>
-                <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={i} className="group/msg relative">
+                <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} items-start gap-1 pb-1`}>
+                  {msg.role === "assistant" && (
+                    <button
+                      type="button"
+                      onClick={() => speakResponse(msg.content)}
+                      className="opacity-0 group-hover/msg:opacity-100 transition-opacity text-xs p-1 rounded border border-stone-200 bg-white hover:bg-stone-100 cursor-pointer self-center"
+                      title="Speak message out loud"
+                    >
+                      🔊
+                    </button>
+                  )}
                   <div
-                    className={`max-w-[95%] px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${msg.role === "user"
-                        ? "bg-stone-900 text-white rounded-br-sm"
-                        : "bg-stone-50 text-stone-700 border border-stone-100 rounded-bl-sm"
+                    className={`max-w-[92%] px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${msg.role === "user"
+                      ? "bg-stone-900 text-white rounded-br-sm"
+                      : "bg-stone-50 text-stone-700 border border-stone-100 rounded-bl-sm"
                       }`}
                   >
                     {renderMarkdown(msg.content)}
@@ -377,16 +460,28 @@ export default function DesignTutorChat({
               }}
               className="flex gap-2"
             >
+              <button
+                type="button"
+                onClick={startSpeechRecognition}
+                disabled={loading}
+                className={`px-2.5 py-2 rounded border focus:outline-none flex items-center justify-center transition-all ${isListening
+                    ? "bg-red-500/25 border-red-500 text-red-500 animate-pulse"
+                    : "bg-[#060b09] border-stone-200 text-stone-507 hover:border-[#00ff66] hover:text-[#00ff66]"
+                  }`}
+                title="Speak your doubt (Voice Dictation)"
+              >
+                {isListening ? "🎤 ON" : "🎙️ Voice"}
+              </button>
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about the next step..."
-                disabled={loading}
+                placeholder={isListening ? "Listening..." : "Ask about the next step..."}
+                disabled={loading || isListening}
                 className="flex-1 px-3 py-2 border border-stone-200 rounded text-sm focus:outline-none focus:border-stone-900 disabled:opacity-50"
               />
               <button
                 type="submit"
-                disabled={loading || !input.trim()}
+                disabled={loading || !input.trim() || isListening}
                 className="px-3 py-2 bg-stone-900 text-white text-sm rounded hover:bg-stone-800 disabled:opacity-50"
               >
                 Send

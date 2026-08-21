@@ -338,7 +338,7 @@ export default function PracticeSession() {
                   value={score ?? ""}
                   onChange={(e) => setScore(Number(e.target.value))}
                   placeholder="1-10"
-                  className="w-16 px-2 py-1 border border-stone-200 rounded text-sm text-center focus:outline-none focus:border-stone-900"
+                  className="w-16 px-2 py-1 border border-stone-250 bg-stone-950 text-[#00ff66] rounded text-sm text-center focus:outline-none focus:border-stone-900"
                 />
               </div>
             </div>
@@ -352,7 +352,7 @@ export default function PracticeSession() {
                     placeholder="Extra thoughts, trade-offs, diagrams..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full h-24 px-3 py-2 border border-stone-200 rounded text-sm focus:outline-none focus:border-stone-900 resize-none"
+                    className="w-full h-24 px-3 py-2 border border-stone-200 rounded text-sm focus:outline-none focus:border-stone-900 resize-none bg-stone-950 text-stone-100"
                   />
                 </div>
               </>
@@ -369,7 +369,7 @@ export default function PracticeSession() {
                   }
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full h-48 px-3 py-2 border border-stone-200 rounded text-sm focus:outline-none focus:border-stone-900 resize-none"
+                  className="w-full h-64 px-3 py-2 border border-stone-200 rounded text-sm focus:outline-none focus:border-stone-900 font-mono bg-stone-950 text-stone-100 placeholder-stone-605 leading-relaxed"
                 />
               </div>
             )}

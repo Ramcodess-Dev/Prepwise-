@@ -400,6 +400,46 @@ export default function PracticeSession() {
           <DesignTutorChat questionId={questionId} questionTitle={question.title} />
         </div>
       )}
+
+      {/* Adaptive practice helper with checklists, hints, boilerplates, and peek utilities */}
+      {running && (!isSystemDesign || !showTutor) && (
+        <div className="lg:col-span-2 space-y-4">
+          <div className="border border-stone-200 rounded-lg p-5 bg-[#0a1410]/50 backdrop-blur-md terminal-border-glow select-none">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-stone-200 pb-2 mb-4">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#00ff66]">
+                ⚡ PRAC_INTELLIGENCE://v1.1
+              </h3>
+              <Badge label={question.category} variant="category" />
+            </div>
+
+            {/* Checklist */}
+            <div className="mb-4">
+              <h4 className="text-[10px] font-bold text-stone-405 uppercase tracking-widest mb-1.5 font-mono">
+                [ FOCUS GUIDE & CRITERIA ]
+              </h4>
+              <div className="text-xs space-y-1 font-mono text-stone-300">
+                {question.category === "behavioral" ? (
+                  <>
+                    <div>• Draft your narrative using the **STAR** method.</div>
+                    <div>• S: Describe the Situation/Context clearly.</div>
+                    <div>• T: Identify the specific Task or objective.</div>
+                    <div>• A: Elaborate on your personal dynamic Actions.</div>
+                    <div>• R: Showcase quantifiable Results (metrics, metrics!).</div>
+                  </>
+                ) : (
+                  <>
+                    <div>• 1. Note inputs, outputs, and edge cases.</div>
+                    <div>• 2. Discuss complexity targets before coding.</div>
+                    <div>• 3. Draft clean, modular logic (use helper methods).</div>
+                    <div>• 4. Explain trade-offs of hash-maps vs pointers.</div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

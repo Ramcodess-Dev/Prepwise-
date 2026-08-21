@@ -284,6 +284,10 @@ export default function PracticeSession() {
     );
   }
 
+  function copyBoilerplateToEditor(boilerplateText: string) {
+    setNotes(boilerplateText);
+  }
+
   return (
     <div className={isSystemDesign && showTutor ? "grid grid-cols-1 lg:grid-cols-5 gap-6" : ""}>
       <div className={isSystemDesign && showTutor ? "lg:col-span-3" : "max-w-2xl"}>
